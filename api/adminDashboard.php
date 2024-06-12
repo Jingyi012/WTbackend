@@ -26,7 +26,7 @@ $app->get('/average_sales_permenu', function (Request $request, Response $respon
     $con = $db->connect();
     try {
         // Query to calculate the total sales per menu item
-        $query = "SELECT m.FoodID, COALESCE(SUM(oi.quantity * oi.price), 0) AS total_sales
+        $query = "SELECT m.FoodID, COALESCE(SUM(oi.price), 0) AS total_sales
                   FROM menu m
                   LEFT JOIN order_items oi ON m.FoodID = oi.food_ID
                   GROUP BY m.FoodID";
@@ -95,7 +95,7 @@ $app->get('/total_sales', function (Request $request, Response $response, $args)
     $db = new db();
     $con = $db->connect();
     try {
-        $query = "SELECT SUM(price * quantity) as total_sales FROM order_items";
+        $query = "SELECT SUM(price)  as total_sales FROM order_items";
         $stmt = $con->prepare($query);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_OBJ);
