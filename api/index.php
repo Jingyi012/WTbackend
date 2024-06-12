@@ -14,6 +14,9 @@ require './order.php';
 require './adminDashboard.php';
 require './userOrder.php';
 
+require './register.php'; 
+require './login.php'; 
+
 
 $app->run();
 ?>
