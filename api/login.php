@@ -24,20 +24,19 @@ $app->post('/login', function (Request $request, Response $response, $args) {
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 
-    $encrypted_password = md5($password);
 
-    // Check if the user exists
-    $stmt = $dbConnection->prepare("SELECT * FROM users WHERE Email = ? AND cPassword = ?");
-    $stmt->execute([$email, $encrypted_password]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+ // Check if the user exists
+ $stmt = $dbConnection->prepare("SELECT * FROM users WHERE Email = ?");
+ $stmt->execute([$email]);
+ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user) {
-        $response->getBody()->write(json_encode(['success' => true, 'role' => $user['cRole']]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } else {
-        $response->getBody()->write(json_encode(['success' => false, 'message' => 'Wrong Email or Password']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-    }
+ if ($user && password_verify($password, $user['cPassword'])) {
+     $response->getBody()->write(json_encode(['success' => true, 'role' => $user['cRole'],'userId' => $user['user_ID'] ])); // Ensure userId is included in response
+     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+ } else {
+     $response->getBody()->write(json_encode(['success' => false, 'message' => 'Wrong Email or Password']));
+     return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+ }
 });
 
 // $app->run();
