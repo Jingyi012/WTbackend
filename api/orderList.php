@@ -15,10 +15,10 @@ $app->get('/orderManageList', function (Request $request, Response $response, $a
     try {
         if ($filter && $search_val) {
 
-            $query = "SELECT * FROM orders WHERE order_ID = :searchVal OR customer_name=:searchVal AND order_status=:order_status ORDER BY cdate DESC";
-            $searchPattern = "%" . $searchVal . "%";
+            $query = "SELECT * FROM orders WHERE (order_ID LIKE :searchVal OR customer_name LIKE :searchVal) AND order_status = :order_status ORDER BY cdate DESC";
             $stmt = $con->prepare($query);
-            $stmt->bindValue("searchVal", $searchPattern);
+            $searchPattern = "%" . $search_val . "%";
+            $stmt->bindValue(":searchVal", $searchPattern);
             $stmt->bindValue("order_status", $filter);
 
         } elseif ($filter) {
@@ -30,10 +30,10 @@ $app->get('/orderManageList', function (Request $request, Response $response, $a
                 $query = "SELECT * FROM orders ORDER BY cdate DESC";
                 $stmt = $con->prepare($query);
             } else {
-                $query = "SELECT * FROM orders WHERE order_ID = :searchVal OR customer_name=:searchVal ORDER BY cdate DESC";
-                $searchPattern = "%" . $searchVal . "%";
+                $query = "SELECT * FROM orders WHERE (order_ID LIKE :searchVal OR customer_name LIKE :searchVal) ORDER BY cdate DESC";
                 $stmt = $con->prepare($query);
-                $stmt->bindValue("searchVal", $searchPattern);
+                $searchPattern = "%" . $search_val . "%";
+                $stmt->bindValue(":searchVal", $searchPattern);
             }
         } else {
             $query = "SELECT * FROM orders ORDER BY cdate DESC";
@@ -42,7 +42,6 @@ $app->get('/orderManageList', function (Request $request, Response $response, $a
 
         $stmt->execute();
         $orders = $stmt->fetchAll(PDO::FETCH_OBJ);
-
         $response->getBody()->write(json_encode($orders));
     } catch (PDOException $e) {
         $error = [
@@ -52,7 +51,7 @@ $app->get('/orderManageList', function (Request $request, Response $response, $a
         return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
     }
 
-    // return $response->withHeader('Content-Type', 'application/json');
+    return $response->withHeader('Content-Type', 'application/json');
 });
 
 $app->get('/getOrderById/{orderId}', function (Request $request, Response $response, $args) {
