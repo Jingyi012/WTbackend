@@ -18,6 +18,7 @@ $app->post('/addOrder', function (Request $request, Response $response, $args) {
     $caddress = $formData['address'] ?? null;
     $phone_num = $formData['phone_num'] ?? null;
     $order = json_decode($formData['order'] ?? '[]', true);
+    $userid=$formData['userid'] ?? null;
 
     // Log extracted data
     error_log("Customer Name: $customer_name");
@@ -57,10 +58,10 @@ $app->post('/addOrder', function (Request $request, Response $response, $args) {
         $current_time = date('Y-m-d H:i:s');
         error_log("current_time: " .  $current_time);
         error_log("Phone Number: $phone_num");
-        $sql = "INSERT INTO Orders (order_ID, customer_name, payment_method, delivery_method, address, phone_num,cdate) 
+        $sql = "INSERT INTO Orders (order_ID, customer_name, payment_method, delivery_method, address, phone_num,user_ID,cdate) 
                 VALUES (?, ?, ?, ?, ?, ?,?)";
         $stmt = $con->prepare($sql);
-        $stmt->execute([$order_id, $customer_name, $payment_method, $delivery_method, $caddress, $phone_num, $current_time]);
+        $stmt->execute([$order_id, $customer_name, $payment_method, $delivery_method, $caddress, $phone_num,$userid, $current_time]);
 
         // Commit transaction
         $con->commit();
