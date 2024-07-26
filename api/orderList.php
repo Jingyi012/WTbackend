@@ -19,12 +19,12 @@ $app->get('/orderManageList', function (Request $request, Response $response, $a
             $stmt = $con->prepare($query);
             $searchPattern = "%" . $search_val . "%";
             $stmt->bindValue(":searchVal", $searchPattern);
-            $stmt->bindValue("order_status", $filter);
+            $stmt->bindValue(":order_status", $filter);
 
         } elseif ($filter) {
             $query = "SELECT * FROM orders WHERE order_status=:order_status ORDER BY cdate DESC";
             $stmt = $con->prepare($query);
-            $stmt->bindValue("order_status", $filter);
+            $stmt->bindValue(":order_status", $filter);
         } elseif ($search_val) {
             if ($search_val == "") {
                 $query = "SELECT * FROM orders ORDER BY cdate DESC";
@@ -41,17 +41,17 @@ $app->get('/orderManageList', function (Request $request, Response $response, $a
         }
 
         $stmt->execute();
-        $orders = $stmt->fetchAll(PDO::FETCH_OBJ);
-        $response->getBody()->write(json_encode($orders));
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $response->withJson($orders);
+
     } catch (PDOException $e) {
         $error = [
             "message" => $e->getMessage()
         ];
-        $response->getBody()->write(json_encode($error));
-        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+
+        return $response->withJson($error);
     }
 
-    return $response->withHeader('Content-Type', 'application/json');
 });
 
 $app->get('/getOrderById/{orderId}', function (Request $request, Response $response, $args) {
@@ -62,9 +62,9 @@ $app->get('/getOrderById/{orderId}', function (Request $request, Response $respo
     try {
         $q1 = "SELECT * FROM orders WHERE order_ID=:orderId";
         $stmt = $con->prepare($q1);
-        $stmt->bindValue("orderId", $orderId);
+        $stmt->bindValue(":orderId", $orderId);
         $stmt->execute();
-        $orderInfo = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $orderInfo = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $q2 = "SELECT orders.order_ID, order_items.quantity, order_items.price, menu.FoodName, menu.FoodPrice 
         FROM orders 
@@ -72,28 +72,28 @@ $app->get('/getOrderById/{orderId}', function (Request $request, Response $respo
         JOIN menu ON menu.FoodID=order_items.food_ID 
         WHERE order_items.order_ID=:orderId";
         $stmt2 = $con->prepare($q2);
-        $stmt2->bindValue("orderId", $orderId);
+        $stmt2->bindValue(":orderId", $orderId);
         $stmt2->execute();
-        $orderItems = $stmt2->fetchAll(PDO::FETCH_OBJ);
+        $orderItems = $stmt2->fetchAll(PDO::FETCH_ASSOC);
 
         $orderDetails = [
             'orderInfo' => $orderInfo,
             'orderItems' => $orderItems
         ];
 
-        $response->getBody()->write(json_encode($orderDetails));
+        return $response->withJson($orderDetails);
 
     } catch (PDOException $e) {
         $error = [
             "message" => $e->getMessage()
         ];
-        $response->getBody()->write(json_encode($error));
+        return $response->withJson($error);
     }
 });
 
 $app->put('/updateOrder/{orderId}', function (Request $request, Response $response, array $args) {
     $orderId = $args['orderId'];
-    $params = (array)$request->getParsedBody();
+    $params = $request->getParsedBody();
 
     $status = $params['order_status'];
     $cus_name = $params['customer_name'];
@@ -121,7 +121,6 @@ $app->put('/updateOrder/{orderId}', function (Request $request, Response $respon
             'message' => $e->getMessage()]);
     }
 
-    return $response->withHeader('Content-Type', 'application/json');
 });
 
 ?>

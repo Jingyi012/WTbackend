@@ -10,15 +10,16 @@ $app->get('/menuList', function (Request $request, Response $response, $args) {
         $query = "SELECT * FROM menu";
         $stmt = $con->prepare($query);
         $stmt->execute();
-        $menu = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $menu = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        $response->getBody()->write(json_encode($menu));
+        return $response->withJson($menu);
+
     } catch (PDOException $e) {
         $error = [
             "message" => $e->getMessage()
         ];
-        $response->getBody()->write(json_encode($error));
-        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+
+        return $response->withJson($error);
     }
 });
 
@@ -66,11 +67,11 @@ $app->post('/addMenu', function (Request $request, Response $response, $args) {
 
         if ($stmt->rowCount() > 0) {
             // Return a JSON response instead of redirecting
-            $responseBody = json_encode(['status' => 'success', 'message' => 'Menu added successfully']);
-            return $response->withHeader('Content-Type', 'application/json')->write($responseBody);
+            return $response->withJson(['status' => 'success', 'message' => 'Menu added successfully']);
+
         } else {
-            $responseBody = json_encode(['status' => 'error', 'message' => 'Failed to add menu']);
-            return $response->withHeader('Content-Type', 'application/json')->write($responseBody);
+
+            return $response->withJson(['status' => 'error', 'message' => 'Failed to add menu']);
         }
 
     } catch (Exception $e) {

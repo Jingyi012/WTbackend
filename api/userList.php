@@ -22,7 +22,7 @@ $app->get('/userManageList', function (Request $request, Response $response, $ar
                 $query = "SELECT * FROM users WHERE Username=:searchVal";
             }
             $stmt = $con->prepare($query);
-            $stmt->bindValue("searchVal", $search_val);
+            $stmt->bindValue(":searchVal", $search_val);
         } elseif ($sort_method) {
             if ($sort_method == "sortname") {
                 $query = "SELECT * FROM users ORDER BY Username";
@@ -39,7 +39,7 @@ $app->get('/userManageList', function (Request $request, Response $response, $ar
             } else {
                 $query = "SELECT * FROM users WHERE Username=:searchVal";
                 $stmt = $con->prepare($query);
-                $stmt->bindValue("searchVal", $search_val);
+                $stmt->bindValue(":searchVal", $search_val);
             }
         } else {
             $query = "SELECT * FROM users";
@@ -47,17 +47,17 @@ $app->get('/userManageList', function (Request $request, Response $response, $ar
         }
 
         $stmt->execute();
-        $users = $stmt->fetchAll(PDO::FETCH_OBJ);
-        
-        $response->getBody()->write(json_encode($users));
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $response->withJson($users);
+
     } catch (PDOException $e) {
         $error = [
             "message" => $e->getMessage()
         ];
-        $response->getBody()->write(json_encode($error));
-        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+
+        return $response->withJson($error);
     }
 
-    // return $response->withHeader('Content-Type', 'application/json');
 });
 ?>
