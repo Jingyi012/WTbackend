@@ -196,4 +196,27 @@ $app->get('/order_summary', function (Request $request, Response $response, $arg
     }
 });
 
+$app->get('/popular_dashboardfood', function (Request $request, Response $response, $args) {
+    $db = new db();
+    $con = $db->connect();
+    try {
+        $query = "SELECT menu.FoodName as FoodName, menu.FoodDescription as FoodDescription, menu.FoodPrice as FoodPrice, menu.FoodImg as FoodImg, SUM(order_items.quantity) as quantity 
+                  FROM order_items 
+                  JOIN menu ON order_items.food_ID = menu.FoodID 
+                  GROUP BY order_items.food_ID 
+                  ORDER BY quantity DESC
+                  LIMIT 4";
+        $stmt = $con->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+        $response->getBody()->write(json_encode($result));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (PDOException $e) {
+        $error = ["message" => $e->getMessage()];
+        $response->getBody()->write(json_encode($error));
+        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+    }
+});
+
 ?>

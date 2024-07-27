@@ -14,7 +14,7 @@ require './menu.php';
 require './order.php';
 require './adminDashboard.php';
 require './userOrder.php';
-
+require './profile.php';
 require './register.php'; 
 require './login.php'; 
 
