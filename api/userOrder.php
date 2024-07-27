@@ -2,29 +2,7 @@
 require_once './config.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
-$validateJWT = function (Request $request, Response $response, $next) {
-    $authHeader = $request->getHeader('Authorization');
-    if (empty($authHeader)) {
-        $response->getBody()->write(json_encode(['message' => 'Missing authorization header']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
-    }
-
-    $token = str_replace('Bearer ', '', $authHeader[0]);
-    $key = '85ldofi'; // Use a secure method for storing and retrieving the key
-
-    try {
-        $decoded = JWT::decode($token, new Key($key, 'HS256'));
-        $userId = $decoded->data->userId;
-        $request = $request->withAttribute('userId', $userId);
-        return $next($request, $response);
-    } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['message' => 'Invalid token', 'error' => $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
-    }
-};
 $app->get('/orders/{user_id}', function (Request $request, Response $response, $args) {
     $db = new db();
     $con = $db->connect();
